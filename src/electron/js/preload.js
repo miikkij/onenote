@@ -47,6 +47,23 @@ window.electronWindowSetup = function () {
         ipc.send('save', data);
     });
 
+    webview.addEventListener('did-get-redirect-request', function (event, url) {
+            const c = this.webView;
+            console.log("did_get_redirect_request");
+            setTimeout(() => {
+              c.executeJavaScript(
+                [
+                  'window.onbeforeunload = function(event){',
+                  'console.log(event);',
+                  'return \'Are you sure you want to leave?\';',
+                  '};',
+                  `window.location = '${e.newURL}';`,
+                ].join('')
+              );
+            }, 10);
+            e.preventDefault();
+    });
+
     webview.addEventListener('new-window', function (event) {
         if (/https?:\/\/(www\.)?onenote\.com/.test(event.url)) {
             webview.src = event.url;
