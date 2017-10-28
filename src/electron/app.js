@@ -1,52 +1,42 @@
+// Electron setup
 const electron = require('electron');
-const { app, Menu, Tray, shell} = require('electron')
+const { app, Menu, Tray, shell } = require('electron');
 const ipc = electron.ipcMain;
-let tray;
-let mainWindow;
-const iconFile = `${__dirname}/images/256x256.png`;
-
-const title = 'P3X OneNote';
-
-
 const BrowserWindow = electron.BrowserWindow;
 const configstore = require('configstore');
 const pkg = require('../../package.json');
 const conf = new configstore(pkg.name);
 
+// Variables
+let tray;
+let mainWindow;
+const iconFile = `${__dirname}/images/256x256.png`;
+const title = 'P3X OneNote';
+
+// Make sure it is a single instance application
 const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
     setVisible(true);
     mainWindow.webContents.reload();
 })
 
 if (isSecondInstance) {
-    app.quit()
+    app.quit();
 }
 
-
+// Application actions
 const action = {
     restart: () => {
         mainWindow.webContents.session.clearStorageData(() => {
-//            console.log('storage cleared');
             conf.clear();
             mainWindow.loadURL('file://' + __dirname + '/blank.html');
-        })
-        /*
-        mainWindow.webContents.send('action', {
-            action: 'restart'
-        })
-        */
-    },
+        });
+    },    
     home: () => {
         mainWindow.show();
         mainWindow.webContents.session.clearStorageData(() => {
             conf.clear();
             mainWindow.loadURL('https://www.onenote.com/notebooks');
-        })
-        /*
-        mainWindow.webContents.send('action', {
-            action: 'home'
-        })
-        */
+        });
     },
     corporate: () => {
         mainWindow.show();
@@ -54,13 +44,7 @@ const action = {
         mainWindow.webContents.session.clearStorageData(() => {
             conf.clear();
             mainWindow.loadURL('https://www.onenote.com/notebooks?auth=2&auth_upn=my_corporate_email_address');
-        })
-
-        /*
-        mainWindow.webContents.send('action', {
-            action: 'corporate'
-        })
-        */
+        });
     },
     'last-page': () => {
         if (typeof conf.get('lastUrl') === 'string' && !conf.get('lastUrl').startsWith('file')) {
@@ -76,29 +60,30 @@ const action = {
         setVisible(!mainWindow.isVisible());
     },
     quit: function () {
-        app.isQuiting = true;
+        app.isQuitting = true;
         app.quit();
     },
     github: () => {
-        shell.openExternal('https://github.com/patrikx3/onenote')
+        shell.openExternal('https://github.com/patrikx3/onenote');
     },
     patrik: () => {
-        shell.openExternal('https://patrikx3.com')
+        shell.openExternal('https://patrikx3.com');
     },
     p3x: () => {
-        shell.openExternal('https://github.com/patrikx3')
+        shell.openExternal('https://github.com/patrikx3');
     },
     corifeus: () => {
-        shell.openExternal('https://corifeus.com')
+        shell.openExternal('https://corifeus.com');
     },
     npm: () => {
-        shell.openExternal('https://www.npmjs.com/~patrikx3')
+        shell.openExternal('https://www.npmjs.com/~patrikx3');
     },
     download: () => {
-        shell.openExternal('https://github.com/patrikx3/onenote/releases')
+        shell.openExternal('https://github.com/patrikx3/onenote/releases');
     },
-}
+};
 
+// Menus linked with actions
 const menus = {
     default: () => {
 
@@ -136,9 +121,9 @@ const menus = {
                 label: 'Quit',
                 click: action.quit
             }
-        ]
+        ];
     }
-}
+};
 
 function createMenu() {
     const template = [
@@ -149,29 +134,29 @@ function createMenu() {
         {
             label: 'Edit',
             submenu: [
-                {role: 'undo'},
-                {role: 'redo'},
-                {type: 'separator'},
-                {role: 'cut'},
-                {role: 'copy'},
-                {role: 'paste'},
-                {role: 'pasteandmatchstyle'},
-                {role: 'delete'},
-                {role: 'selectall'}
+                { role: 'undo' },
+                { role: 'redo' },
+                { type: 'separator' },
+                { role: 'cut' },
+                { role: 'copy' },
+                { role: 'paste' },
+                { role: 'pasteandmatchstyle' },
+                { role: 'delete' },
+                { role: 'selectall' }
             ]
         },
         {
             label: 'View',
             submenu: [
-                {role: 'reload'},
-                {role: 'forcereload'},
-                {role: 'toggledevtools'},
-                {type: 'separator'},
-                {role: 'resetzoom'},
-                {role: 'zoomin'},
-                {role: 'zoomout'},
-                {type: 'separator'},
-                {role: 'togglefullscreen'}
+                { role: 'reload' },
+                { role: 'forcereload' },
+                { role: 'toggledevtools' },
+                { type: 'separator' },
+                { role: 'resetzoom' },
+                { role: 'zoomin' },
+                { role: 'zoomout' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
             ]
         },
         {
@@ -203,20 +188,20 @@ function createMenu() {
                 },
             ]
         }
-    ]
+    ];
 
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
 }
 
 function createTray() {
     if (tray === undefined) {
-        tray = new Tray(iconFile)
-        tray.setToolTip(title)
-        tray.on('click', action.toggleVisible)
+        tray = new Tray(iconFile);
+        tray.setToolTip(title);
+        tray.on('click', action.toggleVisible);
     }
-    const contextMenu = Menu.buildFromTemplate(menus.default())
-    tray.setContextMenu(contextMenu)
+    const contextMenu = Menu.buildFromTemplate(menus.default());
+    tray.setContextMenu(contextMenu);
 }
 
 function setVisible(visible = true) {
@@ -232,7 +217,7 @@ function setVisible(visible = true) {
     }
     conf.set('visible', visible);
     createMenu();
-    createTray()
+    createTray();
 
     if (typeof conf.get('lastUrl') === 'string' && !conf.get('lastUrl').startsWith('file')) {
         mainWindow.loadURL(conf.get('lastUrl'));
@@ -241,59 +226,50 @@ function setVisible(visible = true) {
 
 
 function createWindow() {
-
     mainWindow = new BrowserWindow({
         icon: iconFile,
         toolbar: false,
         title: title,
     });
 
-
     setVisible(conf.get('visible'));
 
-//    mainWindow.loadURL('file://' + __dirname + '/index.html');
     action.home();
-//    mainWindow.loadURL('https://www.onenote.com/hdr');
 
     mainWindow.on('minimize', function (event) {
-        event.preventDefault()
+        event.preventDefault();
         setVisible(false);
     });
 
     mainWindow.on('close', function (event) {
-        if (!app.isQuiting) {
-            event.preventDefault()
+        if (!app.isQuitting) {
+            event.preventDefault();
             setVisible(false);
         }
         return false;
     });
 
-    mainWindow.on('page-title-updated', function(event, title) {
+    mainWindow.on('page-title-updated', function (event, title) {
         if (Array.isArray(event.sender.history) && event.sender.history.length > 0) {
             const lastUrl = event.sender.history[event.sender.history.length - 1];
-//            console.log(lastUrl);
             conf.set('lastUrl', lastUrl);
         }
-    })
+    });
 
     const windowBounds = conf.get('windowBounds');
     if (windowBounds !== null && windowBounds !== undefined) {
         mainWindow.setBounds(windowBounds);
     }
-
-
-
 }
+
 ipc.on('did-finish-load', function () {
     const hostData = conf.get('toHost');
-//    console.log('Loading data', hostData);
     if (hostData !== undefined && hostData !== null) {
         mainWindow.webContents.send('onload-user', hostData);
     }
 });
 
 ipc.on('save', function (event, data) {
-//    console.log('Save', data)
     conf.set('toHost', data);
     conf.set('windowBounds', mainWindow.getBounds());
 })
@@ -301,7 +277,6 @@ ipc.on('save', function (event, data) {
 app.on('ready', createWindow);
 
 app.on('window-all-closed', function () {
-
     if (process.platform !== 'darwin') {
         app.quit();
     }
@@ -312,5 +287,3 @@ app.on('activate', function () {
         createWindow();
     }
 });
-
-
